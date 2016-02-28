@@ -1,0 +1,6 @@
+[submodule "vendor/gentle"]
+	path = vendor/gentle
+	url = https://github.com/lowerquality/gentle.git
+[submodule "vendor/pyinstaller"]
+	path = vendor/pyinstaller
+	url = git://github.com/pyinstaller/pyinstaller.git
