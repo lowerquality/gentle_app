@@ -1,14 +1,20 @@
 #!/usr/bin/env python
 
-from PyQt5 import QtWidgets
+from PyQt5 import QtWidgets, QtCore
+from PyQt5.QtCore import pyqtSignal
 
 import logging
+import os
+import tarfile
+import tempfile
 import threading
 from twisted.internet import reactor
+import urllib2
 import webbrowser
 import sys
 
 from gentle.__version__ import __version__
+from gentle.paths import get_resource
 import serve
 
 def get_open_port(desired=0):
@@ -35,6 +41,87 @@ def open_browser():
 def open_about():
     webbrowser.open("https://lowerquality.com/gentle")
 
+dl = None
+progress = None
+fstpath = get_resource('data/graph/HCLG.fst')
+
+def download_full_language_model():
+    global progress, dl
+
+    fstdir = os.path.dirname(fstpath)
+    try:
+        os.makedirs(fstdir)
+    except OSError:
+        pass
+
+    # Make sure we can write
+    try:
+        open(os.path.join(fstdir, 'test.txt'), 'w').write('this is not a test')
+    except:
+        # cannot write...
+        msg = QtWidgets.QMessageBox()
+        msg.setText("Please install Gentle to the Applications folder of your computer.")
+        msg.exec_()
+        return
+
+    progress = QtWidgets.QProgressBar()
+    progress.setRange(0, 100)
+    
+    trans.hide()
+    layout.removeWidget(trans)
+    layout.addWidget(progress)
+
+    dl = DLThread()
+    dl.start()
+
+    dl.percent.connect(progress.setValue)
+    dl.finished.connect(prompt_to_relaunch)
+
+def prompt_to_relaunch():
+    msg = QtWidgets.QMessageBox()
+    msg.setText("Success! Relaunch Gentle to finish enabling transcription.")
+    msg.exec_()
+    quit_server()
+
+class DLThread(QtCore.QThread):
+
+    percent = pyqtSignal(int)
+    
+    def run(self):
+        url = "http://kaldi-asr.org/downloads/build/2/sandbox/online/egs/fisher_english/s5/exp/tri5a/graph/archive.tar.gz"
+        CHUNK = 128 * 1024
+        with tempfile.NamedTemporaryFile(suffix=".tar.gz") as fp:
+            dl = urllib2.urlopen(url)
+            size = int(dl.headers['content-length'])
+            cur_size = 0
+            while True:
+                buf = dl.read(CHUNK)
+                if not buf:
+                    break
+                fp.write(buf)
+                cur_size += len(buf)
+
+                self.percent.emit(int(100 * (cur_size / float(size))))
+
+            fp.seek(0)
+
+        if True:
+            # done! uncompress to final location
+            with open(fstpath, 'w') as fstout:
+                tar = tarfile.open(fp.name, 'r:gz')
+                hclg = tar.extractfile("./HCLG.fst")
+                cur_size = 0
+                
+                while True:
+                    buf = hclg.read(CHUNK)
+                    if not buf:
+                        break
+                    fstout.write(buf)
+
+                    cur_size += len(buf)
+                    self.percent.emit(int(100 * (cur_size / 709845042.0))) # !!!
+
+
 app = QtWidgets.QApplication(sys.argv)
 
 w = QtWidgets.QWidget()
@@ -60,6 +147,11 @@ btn.clicked.connect(open_browser)
 abt = QtWidgets.QPushButton('About Gentle')
 layout.addWidget(abt)
 abt.clicked.connect(open_about)
+
+if not os.path.exists(fstpath):
+    trans = QtWidgets.QPushButton('Enable full transcription')
+    layout.addWidget(trans)
+    trans.clicked.connect(download_full_language_model)
 
 quitb = QtWidgets.QPushButton('Quit')
 layout.addWidget(quitb)
