@@ -54,21 +54,15 @@ def download_full_language_model():
     except OSError:
         pass
 
-    # Make sure we can write
-    try:
-        open(os.path.join(fstdir, 'test.txt'), 'w').write('this is not a test')
-    except:
-        # cannot write...
-        msg = QtWidgets.QMessageBox()
-        msg.setText("Please install Gentle to the Applications folder of your computer.")
-        msg.exec_()
-        return
-
     progress = QtWidgets.QProgressBar()
     progress.setRange(0, 100)
     
     trans.hide()
     layout.removeWidget(trans)
+
+    dltxt = QtWidgets.QLabel('Downloading language model...')
+    layout.addWidget(dltxt)
+    
     layout.addWidget(progress)
 
     dl = DLThread()
@@ -105,7 +99,6 @@ class DLThread(QtCore.QThread):
 
             fp.seek(0)
 
-        if True:
             # done! uncompress to final location
             with open(fstpath, 'w') as fstout:
                 tar = tarfile.open(fp.name, 'r:gz')
