@@ -4,10 +4,10 @@ block_cipher = None
 import os
 
 data_files = []
-for dirpath in ['www', 'data', 'PROTO_LANGDIR']:
+for dirpath in ['www', 'exp']:
     data_files.append((dirpath, dirpath))
 data_files.append(('ffmpeg', ''))
-for extname in ['mkgraph', 'standard_kaldi']:
+for extname in ['m3', 'k3']:
     data_files.append((os.path.join('ext', extname), 'ext'))
 
 a = Analysis(['gentle.py'],

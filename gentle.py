@@ -14,7 +14,7 @@ import webbrowser
 import sys
 
 from gentle.__version__ import __version__
-from gentle.paths import get_resource
+from gentle.util.paths import get_resource
 import serve
 
 def get_open_port(desired=0):
@@ -43,12 +43,13 @@ def open_about():
 
 dl = None
 progress = None
-fstpath = get_resource('data/graph/HCLG.fst')
+fstpath = get_resource('exp/tdnn_7b_chain_online/graph_pp/HCLG.fst')
 
 def download_full_language_model():
     global progress, dl
 
     fstdir = os.path.dirname(fstpath)
+
     try:
         os.makedirs(fstdir)
     except OSError:
@@ -82,7 +83,7 @@ class DLThread(QtCore.QThread):
     percent = pyqtSignal(int)
     
     def run(self):
-        url = "http://kaldi-asr.org/downloads/build/2/sandbox/online/egs/fisher_english/s5/exp/tri5a/graph/archive.tar.gz"
+        url = "https://lowerquality.com/gentle/aspire-hclg.tar.gz"
         CHUNK = 128 * 1024
         with tempfile.NamedTemporaryFile(suffix=".tar.gz") as fp:
             dl = urllib2.urlopen(url)
@@ -102,7 +103,7 @@ class DLThread(QtCore.QThread):
             # done! uncompress to final location
             with open(fstpath, 'w') as fstout:
                 tar = tarfile.open(fp.name, 'r:gz')
-                hclg = tar.extractfile("./HCLG.fst")
+                hclg = tar.extractfile("exp/tdnn_7b_chain_online/graph_pp/HCLG.fst")
                 cur_size = 0
                 
                 while True:
@@ -112,7 +113,7 @@ class DLThread(QtCore.QThread):
                     fstout.write(buf)
 
                     cur_size += len(buf)
-                    self.percent.emit(int(100 * (cur_size / 709845042.0))) # !!!
+                    self.percent.emit(int(100 * (cur_size / float(hclg.size)))) # !!!
 
 
 app = QtWidgets.QApplication(sys.argv)
