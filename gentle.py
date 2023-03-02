@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import multiprocessing
+
+multiprocessing.freeze_support()
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 
