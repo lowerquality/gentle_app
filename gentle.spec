@@ -6,7 +6,7 @@ import os
 data_files = []
 for dirpath in ['www', 'exp']:
     data_files.append((dirpath, dirpath))
-data_files.append(('ffmpeg', ''))
+data_files.append(('vendor/ffmpeg', '.'))
 for extname in ['m3', 'k3']:
     data_files.append((os.path.join('ext', extname), 'ext'))
 
