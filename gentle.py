@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import multiprocessing
+
+multiprocessing.freeze_support()
+
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtCore import pyqtSignal
 
@@ -9,7 +13,7 @@ import tarfile
 import tempfile
 import threading
 from twisted.internet import reactor
-import urllib2
+import urllib
 import webbrowser
 import sys
 
@@ -86,7 +90,7 @@ class DLThread(QtCore.QThread):
         url = "https://lowerquality.com/gentle/aspire-hclg.tar.gz"
         CHUNK = 128 * 1024
         with tempfile.NamedTemporaryFile(suffix=".tar.gz") as fp:
-            dl = urllib2.urlopen(url)
+            dl = urllib.request.urlopen(url)
             size = int(dl.headers['content-length'])
             cur_size = 0
             while True:
@@ -101,9 +105,10 @@ class DLThread(QtCore.QThread):
             fp.seek(0)
 
             # done! uncompress to final location
-            with open(fstpath, 'w') as fstout:
+            with open(fstpath, 'wb') as fstout:
                 tar = tarfile.open(fp.name, 'r:gz')
-                hclg = tar.extractfile("exp/tdnn_7b_chain_online/graph_pp/HCLG.fst")
+                hclg_info = tar.getmember("exp/tdnn_7b_chain_online/graph_pp/HCLG.fst")
+                hclg = tar.extractfile(hclg_info)
                 cur_size = 0
                 
                 while True:
@@ -113,7 +118,7 @@ class DLThread(QtCore.QThread):
                     fstout.write(buf)
 
                     cur_size += len(buf)
-                    self.percent.emit(int(100 * (cur_size / float(hclg.size)))) # !!!
+                    self.percent.emit(int(100 * (cur_size / float(hclg_info.size)))) # !!!
 
 
 app = QtWidgets.QApplication(sys.argv)
