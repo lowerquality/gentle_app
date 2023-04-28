@@ -107,8 +107,8 @@ class DLThread(QtCore.QThread):
             # done! uncompress to final location
             with open(fstpath, 'wb') as fstout:
                 tar = tarfile.open(fp.name, 'r:gz')
-                hclg = tar.extractfile("exp/tdnn_7b_chain_online/graph_pp/HCLG.fst")
                 hclg_info = tar.getmember("exp/tdnn_7b_chain_online/graph_pp/HCLG.fst")
+                hclg = tar.extractfile(hclg_info)
                 cur_size = 0
                 
                 while True:
